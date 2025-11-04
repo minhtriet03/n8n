@@ -1,0 +1,518 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "=BÁO CÁO DOANH THU NGÀY {{ new Date(Date.now() - 24*60*60*1000).toISOString().split('T')[0].split('-').reverse().join('/') }}\n{{ $json.string }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1600,
+        -80
+      ],
+      "id": "05169214-2624-4f68-804a-60a7c257e51e",
+      "name": "Send a text message",
+      "webhookId": "575d33aa-a7f0-4225-8ddc-4c7b38f91070",
+      "credentials": {
+        "telegramApi": {
+          "id": "xKTRVDfNTbVnO0W0",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1MDcYjXJAtS0HE4RMaWZbDpcPysRLOxlq2b_WN7fRmEw",
+          "mode": "list",
+          "cachedResultName": "Ads-Tele",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MDcYjXJAtS0HE4RMaWZbDpcPysRLOxlq2b_WN7fRmEw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Trang tính1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MDcYjXJAtS0HE4RMaWZbDpcPysRLOxlq2b_WN7fRmEw/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        16,
+        -288
+      ],
+      "id": "a5ecabe3-e128-4dba-adfa-bd2f1057ffc8",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "n3GzeHSnIoMOTote",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://googleads.googleapis.com/v22/customers/{{ $json.customer_id }}/googleAds:searchStream",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleAdsOAuth2Api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "developer-token",
+              "value": "tokensai"
+            },
+            {
+              "name": "login-customer-id",
+              "value": "9369862374"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"query\": \"SELECT customer_client.id, customer_client.descriptive_name, customer_client.currency_code,customer_client.status FROM customer_client WHERE customer_client.manager = FALSE and customer_client.status!='CANCELED' \"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        -352
+      ],
+      "id": "08df648c-00a3-4fe2-84d2-4f00de0b9ec8",
+      "name": "HTTP Request",
+      "alwaysOutputData": false,
+      "credentials": {
+        "googleAdsOAuth2Api": {
+          "id": "1Bz4BKJQNTp9JGvk",
+          "name": "Google Ads account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "=POST",
+        "url": "=https://googleads.googleapis.com/v22/customers/{{ $json.customerClient.id }}/googleAds:searchStream",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleAdsOAuth2Api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "developer-token",
+              "value": "v4xkZOcvenT7nkBbO8UYUw"
+            },
+            {
+              "name": "login-customer-id",
+              "value": "9369862374"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"query\": \"SELECT customer.id,customer.descriptive_name,metrics.cost_micros FROM customer \"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        976,
+        -416
+      ],
+      "id": "5321a28c-45f1-4ee5-96d0-153881ceb2fb",
+      "name": "HTTP Request1",
+      "alwaysOutputData": false,
+      "credentials": {
+        "googleAdsOAuth2Api": {
+          "id": "1Bz4BKJQNTp9JGvk",
+          "name": "Google Ads account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nvar tong=0;\nvar string =\"\";\nvar chat_id =0;\nfor (const item of $input.all()) {\n  var cost=parseInt(item.json.results[0].metrics.costMicros)/1000000;\n  item.json.cost_formatted = `$${(cost).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;\n  string = string + \"Doanh thu tài khoản : \"+ item.json.results[0].customer.id  +  \" là \" + item.json.cost_formatted +\"\\n\";\n  tong = tong + parseInt(item.json.results[0].metrics.costMicros)/1000000;\n  \n}\nchat_id = $('Loop Over Items').first().json.telegram_id\ntong = `$${(tong).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;\nstring = string +\"Tổng doanh thu là : \"  +tong ;\n\nreturn [\n  \n  { json: {chat_id, string ,tong } }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1184,
+        -416
+      ],
+      "id": "e54b5f8f-3be1-498d-ac5c-696787f3fb83",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        224,
+        -368
+      ],
+      "id": "a258e78d-189c-4084-994c-1d4ad0cfd760",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0fb64adb-5662-4f49-9e4f-7bf2cae057d7",
+              "leftValue": "={{ $json.data[0].tong }}",
+              "rightValue": "$0.00",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1408,
+        -160
+      ],
+      "id": "ccee51e6-025e-4617-b055-e5ee867328ba",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "results",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        704,
+        -400
+      ],
+      "id": "64316b87-62db-47fd-b8f1-58604814e8ed",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.error.message }}",
+                    "rightValue": "Bad request",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "25a311b2-1bcd-4229-b7b0-aae5098267b8"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "d5bbecc0-a9fe-418b-be52-4e63ebf7d731",
+                    "leftValue": "={{ $json.error.message }}",
+                    "rightValue": "Authorization failed - please check your credentials",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        496,
+        -192
+      ],
+      "id": "a7bc33d1-a4c9-4425-9578-00273fe48518",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "chatId": "=-5092952842",
+        "text": "=Lỗi tại dòng : {{ $json.row_number }}\ncustomter_id : {{ $json.customer_id }}\ntelegram_id : {{ $json.telegram_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1184,
+        -240
+      ],
+      "id": "b899374b-4db9-43d6-a85f-7c49354256c3",
+      "name": "Send a text message1",
+      "webhookId": "575d33aa-a7f0-4225-8ddc-4c7b38f91070",
+      "credentials": {
+        "telegramApi": {
+          "id": "xKTRVDfNTbVnO0W0",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "errorMessage": "Lỗi Developer Token"
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        848,
+        -320
+      ],
+      "id": "ca897b6f-411f-4f45-a8cd-8ea983640cbf",
+      "name": "Stop and Error"
+    },
+    {
+      "parameters": {
+        "errorMessage": "="
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        992,
+        -144
+      ],
+      "id": "b92ed785-18cc-46f4-9818-2eda9bf2decf",
+      "name": "Stop and Error1"
+    },
+    {
+      "parameters": {
+        "path": "7768b795-1789-47ab-af9a-594781b89f39",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -192,
+        -288
+      ],
+      "id": "50d2d1cf-70c3-40da-bad6-61e42477ddda",
+      "name": "Webhook1",
+      "webhookId": "7768b795-1789-47ab-af9a-594781b89f39"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop and Error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop and Error1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "hW3mvVFw1n6pof4v"
+  },
+  "versionId": "4ae5c720-1a50-425c-9730-04fdcf556077",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ede31f612c9d21b8de405888ef63d6fb64db5eb7f1490f1259276c9138f1f0f1"
+  },
+  "id": "EetnDMQKTaf2T7QW",
+  "tags": []
+}

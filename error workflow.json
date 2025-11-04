@@ -1,0 +1,63 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "2d6bcd30-70b2-4d99-8fd2-a87878c2cc8a",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "chatId": "=-5092952842",
+        "text": "={{ $json.execution.error.message }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        0
+      ],
+      "id": "d8bd253b-0e67-4214-b641-cbfda397d9c8",
+      "name": "Send a text message1",
+      "webhookId": "575d33aa-a7f0-4225-8ddc-4c7b38f91070",
+      "credentials": {
+        "telegramApi": {
+          "id": "xKTRVDfNTbVnO0W0",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3230a4e4-fa51-4dc2-bc19-504334f76c09",
+  "meta": {
+    "instanceId": "ede31f612c9d21b8de405888ef63d6fb64db5eb7f1490f1259276c9138f1f0f1"
+  },
+  "id": "hW3mvVFw1n6pof4v",
+  "tags": []
+}
